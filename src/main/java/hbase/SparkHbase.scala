@@ -5,19 +5,32 @@ import org.apache.hadoop.hbase.client.{HTable, Put}
 import org.apache.hadoop.hbase.mapred.TableOutputFormat
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.mapred.JobConf
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
 
 object SparkHbase {
   def main(args: Array[String]): Unit = {
+    /**
+     * 在执行前，需要先创建hbase中的表
+     * create 'badou.orders','id','num'
+     *
+     */
+      //设置日志级别
+      Logger.getLogger("org.apache.spark").setLevel(Level.ERROR);
     //    client 请求hbase，写数据 zookeeper
     val ZOOKEEPER_QUORUM = "192.168.137.3,192.168.137.4,192.168.137.5"
+   // System.setProperty("HADOOP_USER_NAME","root")
+    //val warehouse = "hdfs://master:9000/usr/soft/apache-hive-1.2.2-bin/warehouse"
     //    读取hive中的数据写入hbase，创建sparksession
     val spark = SparkSession.builder()
+     // .config("spark.sql.warehouse.dir",warehouse)
+      .master("local[2]")
       .appName("spark to hbase")
       .enableHiveSupport()
       .getOrCreate()
 
-    val rdd = spark.sql("select order_id,user_id,order_dow from badou.orders limit 300").rdd
+      val rdd = spark.sql("select order_id,user_id,order_dow from badou.orders limit 300").rdd
+    rdd.take(5).foreach(println)
 
     /**
      * 一个put对象就是一行记录，在构造方法中主键rowkey（user_id）
@@ -43,6 +56,7 @@ object SparkHbase {
       jobconf.setOutputFormat(classOf[TableOutputFormat])
       //      写入表名
       val table = new HTable(jobconf,TableName.valueOf("orders"))
+      //将scala中的seq结构转变成java的list结构
       import scala.collection.JavaConversions._
       table.put(seqAsJavaList(partiton.toSeq))
     }

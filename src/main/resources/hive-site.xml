@@ -35,8 +35,4 @@
 		<name>hive.metastore.uris</name>
 		<value>thrift://master:9083</value>
 	</property>
-	<property>
-		<name>hive.metastore.schema.verification</name>
-		<value>true</value>
-	</property>
 </configuration>

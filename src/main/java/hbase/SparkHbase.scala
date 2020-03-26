@@ -10,6 +10,7 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.mapred.JobConf
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
+import utils.ConvertTime
 
 object SparkHbase {
   def main(args: Array[String]): Unit = {
@@ -24,6 +25,7 @@ object SparkHbase {
 
       //    client 请求hbase，写数据 zookeeper
       val ZOOKEEPER_QUORUM = "192.168.137.3,192.168.137.4,192.168.137.5"
+//      val ZOOKEEPER_QUORUM = "192.168.110.110:2183,192.168.110.110:2184,192.168.110.110:2185"
       System.setProperty("HADOOP_USER_NAME", "root")
       val warehouse = "hdfs://master:9000/usr/soft/apache-hive-1.2.2-bin/warehouse"
       //    读取hive中的数据写入hbase，创建sparksession
@@ -52,7 +54,7 @@ object SparkHbase {
         val order_dow = row(2).toString
 
         //加处理逻辑user_id为主key
-        val p = new Put(Bytes.toBytes(user_id),tranTimeToLong(new Date().toString))
+        val p = new Put(Bytes.toBytes(user_id),ConvertTime.gettimestamp())
         //id 列族存放所有id类型列，order为列，value对应的order_id
         p.addColumn(Bytes.toBytes("id"), Bytes.toBytes("order"), Bytes.toBytes(order_id))
         //num为列族存放所有num数值型列，dow为列，order_dow为具体值
@@ -75,13 +77,5 @@ object SparkHbase {
       case ex: Exception =>
         println(ex.printStackTrace())
     }
-  }
-
-  def tranTimeToLong(tm:String) :Long={
-    val fm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    val dt = fm.parse(tm)
-    val aa = fm.format(dt)
-    val tim: Long = dt.getTime()
-    tim
   }
 }

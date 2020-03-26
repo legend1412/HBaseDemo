@@ -22,6 +22,7 @@ object SparkHbase {
 
       //    client 请求hbase，写数据 zookeeper
       val ZOOKEEPER_QUORUM = "192.168.137.3,192.168.137.4,192.168.137.5"
+//      val ZOOKEEPER_QUORUM = "192.168.110.110:2183,192.168.110.110:2184,192.168.110.110:2185"
       System.setProperty("HADOOP_USER_NAME", "root")
       val warehouse = "hdfs://master:9000/usr/soft/apache-hive-1.2.2-bin/warehouse"
       //    读取hive中的数据写入hbase，创建sparksession

@@ -7,6 +7,7 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.mapred.JobConf
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
+import utils.ConvertTime
 
 object SparkHbase {
   def main(args: Array[String]): Unit = {
@@ -31,7 +32,7 @@ object SparkHbase {
         .enableHiveSupport()
         .getOrCreate()
 
-      val rdd = spark.sql("select order_id,user_id,order_dow from badou.orders where order_id != 'order_id' limit 50").rdd
+      val rdd = spark.sql("select order_id,user_id,order_dow from badou.orders where user_id='1' limit 5").rdd
       rdd.take(5).foreach(println)
 //        [2539329,1,2]
 //        [2398795,1,3]
@@ -45,13 +46,11 @@ object SparkHbase {
        **/
       rdd.map { row =>
         val order_id = row(0).asInstanceOf[String]
-        //        val user_id = row(1).asInstanceOf[Long]
-        //        val order_dow = row(2).asInstanceOf[Int]
         val user_id = row(1).asInstanceOf[String]
         val order_dow = row(2).asInstanceOf[String]
 
         //      加处理逻辑user_id为主key
-        var p = new Put(Bytes.toBytes(user_id))
+        val p = new Put(Bytes.toBytes(user_id),ConvertTime.gettimestamp())
         //      id 列族存放所有id类型列，order为列，value对应的order_id
         p.addColumn(Bytes.toBytes("id"), Bytes.toBytes("order"), Bytes.toBytes(order_id))
         //      num为列族存放所有num数值型列，dow为列，order_dow为具体值
